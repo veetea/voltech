@@ -1,9 +1,17 @@
 import React from "react"
 import { useCart } from "../context/CartContext"
+import { useAuth } from "../context/AuthContext"
+import AdminPage from "../pages/Admin";
 
-export default function Navibar({search, onSearch }) {
-    const { totalItems, setCartOpen } = useCart() 
-    
+export default function Navibar({search, onSearch, onNavigate}) {
+    const { totalItems, setCartOpen } = useCart()
+    const { user, logout } = useAuth();
+
+    function handleLogout() {
+        logout();
+        onNavigate('login');
+    }
+
     return (
         <nav className="navbar">
             <div className="logo">Voltech 
@@ -19,12 +27,37 @@ export default function Navibar({search, onSearch }) {
                 />
             </div>
 
+            <div className="nav-actions">
+                {user && user.role === 'admin' && (
+                    <button className="nav-btn" onClick={() => onNavigate('admin')}>
+                        Admin Dashboard
+                    </button>
+                )}
+                {user && (
+                    <span className="nav-username">Hi, {user.username}</span>
+                )}
+
             <button 
             className="cart-icon"
             onClick={() => setCartOpen(true)}
             >
             Cart ({totalItems > 0 ? totalItems : 'Empty'})
             </button>
+            {user ? (
+                <button className="logout-btn" onClick={handleLogout}>
+                    Logout
+                </button>
+            ) : (
+                <>
+                    <button className="nav-btn" onClick={() => onNavigate('login')}>
+                        Login
+                    </button>
+                    <button className="nav-btn" onClick={() => onNavigate('register')}>
+                        Register
+                    </button>
+                </>
+            )}
+            </div>
         </nav>
     )
-}
+}   

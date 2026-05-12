@@ -1,13 +1,14 @@
 #backend using FastAPI and MongoDB
 
 #importing libraries
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
 from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
+from auth import hash_password, verify_password, create_access_token, decode_access_token, oauth2_scheme
 
 app = FastAPI()
 
@@ -26,6 +27,7 @@ db = client["volt_database"]
 
 products_collection = db["products"]
 cart_collection = db["cart"]
+users_collection = db["users"]
 
 #mongodb returns _id as ObjectId so I convert it to string here
 def fix_id(document):
@@ -39,7 +41,19 @@ def parse_object_id(id_str):
         return ObjectId(id_str)
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid ID format")
-    
+
+#user model
+class User(BaseModel):
+    username: str
+    email: str
+    password: str
+    role: str = "user"  # default role is user, admin is set manually
+
+#login model
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 #product model
 class Product(BaseModel):
     name: str
@@ -254,3 +268,93 @@ async def remove_cart_item(session_id: str, item_id: str):
 @app.delete("/api/cart/{session_id}", status_code=204)
 async def clear_cart(session_id: str):
     await cart_collection.delete_many({"session_id": session_id})
+
+
+#user registration
+@app.post("/api/auth/register", status_code=201)
+async def register_user(user: User):
+    
+    # check if user already exists
+    existing_user = await users_collection.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    # Hashhashing the password beofre saving to database
+    hashed_password = hash_password(user.password)
+
+    # create the user document
+    user_doc = {
+        "username": user.username,
+        "email": user.email,
+        "password": hashed_password,
+        "role": user.role
+    }
+
+    # insert the user into the database
+    result = await users_collection.insert_one(user_doc)
+    new_user = await users_collection.find_one({"_id": result.inserted_id})
+    new_user = fix_id(new_user)
+    new_user.pop("password")  # Remove password from the response
+    return fix_id(new_user)
+
+#user login
+@app.post("/api/auth/login")
+async def login_user(login_request: LoginRequest):
+    user = await users_collection.find_one({"email": login_request.email})    #finding user by email
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not verify_password(login_request.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    #creating JWT token
+    access_token = create_access_token(data={"sub": str(user["_id"]), "role": user["role"]})
+    return {"access_token": access_token, 
+            "token_type": "bearer",
+            "user": {
+                "id": str(user["_id"]),
+                "username": user["username"],
+                "email": user["email"],
+                "role": user["role"]
+            }   
+        }
+
+#to get current user from token
+@app.get("/api/auth/me")
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    user_id = decode_access_token(token)
+    user = await users_collection.find_one({"_id": parse_object_id(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user = fix_id(user)
+    user.pop("password")  # Remove password from the response
+    return user
+
+#get all users (admin only)
+@app.get("/api/auth/users")
+async def list_users(token: str = Depends(oauth2_scheme)):
+    user_id = decode_access_token(token)
+
+    #check if the user is admin
+    current_user = await users_collection.find_one({"_id": parse_object_id(user_id)})
+    if not current_user or current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    users = await users_collection.find({}).to_list(length=100)
+    #removing pass from all the users
+    for user in users:
+        user.pop("password")  # remove password from the response
+    return [fix_id(user) for user in users]
+
+#getting a specific user's cart (admin only)
+@app.get("/api/auth/users/{user_id}/cart")
+async def get_user_cart(user_id: str, token: str = Depends(oauth2_scheme)):
+    current_user_id = decode_access_token(token)
+
+    #check if the user is admin
+    current_user = await users_collection.find_one({"_id": parse_object_id(current_user_id)})
+    if not current_user or current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    cart_items = await cart_collection.find({"session_id": user_id}).to_list(length=200)
+    return [fix_id(item) for item in cart_items]

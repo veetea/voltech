@@ -4,14 +4,18 @@ import NaviBar from "./components/NaviBar";
 import CartDrawer from "./components/CartDrawer";
 import ProductForm from "./components/ProductForm";
 import ProductModal from "./components/ProductModal";
+import LoginPage from "./pages/LoginPage";  //added
+import RegisterPage from "./pages/RegisterPage"; //added
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider, useCart } from "./context/CartContext";
 import { createProduct, updateProduct, deleteProduct } from "./services/api";
 import useProducts from "./hooks/useProducts";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import AdminPage from "./pages/Admin";
 
 const CATEGORIES = ["Audio", "Laptops", "Accessories", "Cameras", "Gaming", "Phones"]
 
-function Shop() {
+function Shop({ onNavigate }) {
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
     const [formOpen, setFormOpen] = useState(false);
@@ -20,6 +24,8 @@ function Shop() {
     const [adminMode, setAdminMode] = useState(false);
     const { products, loading, error, fetchProducts } = useProducts(search, category);
     const { addItem } = useCart()
+    // Get user from AuthContext
+    const { user } = useAuth();
 
     async function handleSave(formData) {
         try {
@@ -51,7 +57,7 @@ function Shop() {
 
     return (
         <div>
-            <NaviBar search={search} onSearch={setSearch} />
+            <NaviBar search={search} onSearch={setSearch} onNavigate={onNavigate} />
             <div className="main-content">
                 <SideBar
                     categories={CATEGORIES}
@@ -121,12 +127,40 @@ function Shop() {
     )
 }
 
+// Main App component with context providers
+function Main() {
+    const [currentPage, setCurrentPage] = useState('shop');
+    const { user, loading } = useAuth();
+
+    function handleNavigate(page) {
+        setCurrentPage(page);
+    }
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (!user) {
+        return currentPage === 'register' 
+        ? <RegisterPage onNavigate={handleNavigate} /> 
+        : <LoginPage onNavigate={handleNavigate} />;
+    }
+
+    //show admin page
+    if (currentPage === 'admin') {
+        return <AdminPage onNavigate={handleNavigate} />;
+    }
+    return <Shop onNavigate={handleNavigate} />;
+}
+
 export default function App() {
     return (
         <ToastProvider>
+            <AuthProvider> 
             <CartProvider>
-                <Shop />
+                <Main />
             </CartProvider>
+            </AuthProvider>
         </ToastProvider>
     )
 }

@@ -6,6 +6,13 @@ const CartContext = createContext()
 
 //generating or getting an existing session id for the cart
 function getSessionId() {
+
+    const user = localStorage.getItem('user')
+    if (user) {
+        const parsed = JSON.parse(user)
+        return parsed._id || parsed.id 
+    }
+
     let sessionId = localStorage.getItem('sessionId')
     if (!sessionId) {
         sessionId = Math.random().toString(36).substring(2)
