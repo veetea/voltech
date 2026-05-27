@@ -5,7 +5,7 @@ export default function ProductCard({product, onView}) {
     const { addItem, cartItems, updateItem, removeItem } = useCart()
 
     //check if product is already in cart
-    const cartItem = cartItems.find(item => item.productId === product._id)
+    const cartItem = cartItems.find(item => item.product_id === product._id)
     const quantity = cartItem ? cartItem.quantity : 0
 
     //to add item to cart for the first time
@@ -17,14 +17,14 @@ export default function ProductCard({product, onView}) {
     //to increase quantity by 1
      function handleIncrease(e) {
         e.stopPropagation()
-        updateItem(product._id, quantity + 1)
+        updateItem(cartItem._id, quantity + 1)
     }
 
     //to decrease quantity, remove if it reaches 0
     function handleDecrease(e) {
         e.stopPropagation()
-        if (quantity === 1) removeItem(product._id)
-        else updateItem(product._id, quantity - 1)
+        if (quantity === 1) removeItem(cartItem._id)
+        else updateItem(cartItem._id, quantity - 1)
     }
     return (
         <div className="product-card" onClick={onView}>

@@ -105,7 +105,10 @@ export default function ProductForm({product, onSave, onClose}) {
                         value={formData.stock}
                         onChange={handleChange}
                     />
-                    <button type="submit">{product ? "Save Changes" : "Add Product"}</button>
+                    <div className="form-actions">
+                        <button type="submit">{product ? "Save Changes" : "Add Product"}</button>
+                        <button type="button" onClick={onClose}>Cancel</button>
+                    </div>
                 </form>
             </div>
         </div>

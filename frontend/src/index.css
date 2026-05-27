@@ -246,7 +246,6 @@ button {
     flex-shrink: 0;
 }
 
-
 /* Product Grid */
 .product-list {
     display: grid;
@@ -592,6 +591,7 @@ button {
 .quantity-controls span {
     font-size: 0.85rem;
     min-width: 20px;
+    color: #f0f0f0;
     text-align: center;
 }
 
@@ -815,7 +815,7 @@ button {
 
 .form-actions button[type="submit"] {
     background: #a855f7;
-    color: #000;
+    color: #f0f0f0;
     font-weight: 600;
     padding: 8px 18px;
     border-radius: 7px;
