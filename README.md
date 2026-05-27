@@ -92,7 +92,7 @@ Open http://localhost:5173
 5. Admin users can view all users and their carts
 
 ## Workload Allocation
-This assignment was completed individually by Vee (veetea).
+This assignment was completed individually by Vatsal Tadvi (26164362).
 
 | File | Description |
 |------|-------------|
