@@ -1,3 +1,2 @@
-{"_id":{"$oid":"6a01a443a1a89bd9830dd407"},"username":"testuser","email":"test@test.com","password":"$2b$12$m4ZFlkrwk6kmXra.aR5PjeNC9SpucFF.pM/RKy/XeaoHtRHCMbeje","role":"user"}
-{"_id":{"$oid":"6a01af77695aa9244973f6d3"},"username":"123","email":"123@test.com","password":"$2b$12$9SZ.3luRssKNC39YLdpGZ.LLCsW3yk/5wG0Ss/IPsHj2GnOO4uQZa","role":"admin"}
-{"_id":{"$oid":"6a01d2388b9f455f4f8511e1"},"username":"test","email":"test@123","password":"$2b$12$v5hEOI.G5/K/9dnmFGAwEuNuCpXOmAoHHm4x8B4VohaKRdrWIWfgu","role":"user"}
+{"_id":{"$oid":"6a0d502ff11a7a466022e607"},"username":"admin","email":"admin@admin.com","password":"$2b$12$utwSMf/2epTlkii5WqLIMuOygU6m2gBf7xRpkWNJj1IeCHCYkIqF.","role":"admin"}
+{"_id":{"$oid":"6a0d509cf11a7a466022e608"},"username":"test","email":"test@test.com","password":"$2b$12$CmGHuLPmxoLufBJJiukwiu3mQJyVyPf.PEB3Zo.EAoFJ2gHi2DxzK","role":"user"}
