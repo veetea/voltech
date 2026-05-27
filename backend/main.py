@@ -153,7 +153,6 @@ async def startup_event():
     count = await products_collection.count_documents({})
     if count == 0:
         await products_collection.insert_many(PRODUCTS) 
-        print("Products added to the database")
 
 #get all products, can also be filtered by category or search
 @app.get("/api/products")
@@ -312,7 +311,7 @@ async def login_user(login_request: LoginRequest):
     return {"access_token": access_token, 
             "token_type": "bearer",
             "user": {
-                "id": str(user["_id"]),
+                "_id": str(user["_id"]),
                 "username": user["username"],
                 "email": user["email"],
                 "role": user["role"]

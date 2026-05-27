@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useState, useCallback} from "react"
+import React, {createContext, useContext, useEffect, useState} from "react"
 import {getCartItems, addToCart, updateCartItem, removeCartItem, clearCart} from "../services/api"
 import {useToast} from "./ToastContext"
 
@@ -28,15 +28,15 @@ export const CartProvider = ({children}) => {
     const sessionId = getSessionId()
 
 //loading cart from backend
-    const loadCart = useCallback(() => {
+    function loadCart() {
         getCartItems(sessionId)
             .then(data => setCartItems(data))
             .catch(() => showToast("Failed to load cart", "error"))
-    }, [sessionId])
+    }
 
     useEffect(() => {
         loadCart()
-    }, [loadCart])
+    }, [])
 
 async function addItem(productId, productName, quantity) {
     try {

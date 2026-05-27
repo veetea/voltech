@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 import os
@@ -41,7 +41,6 @@ def decode_access_token(token: str):
         if user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return user_id
-    except JWTError as e:
-        print(f"JWTError: {e}")
+    except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     

@@ -19,7 +19,6 @@ export default function AdminPage({ onNavigate }) {
         })
         .then(response => response.json())
         .then(data => {
-            console.log("Fetched users:", data); // Debugging line
             setUsers(data);
             setUsersLoading(false);
         })
@@ -57,6 +56,9 @@ export default function AdminPage({ onNavigate }) {
         return username.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 
+    //calculate cart's total
+    const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+
     return (
         <div className="admin-page">
             <h2>Admin Dashboard</h2>
@@ -70,6 +72,7 @@ export default function AdminPage({ onNavigate }) {
                         <h3>Users</h3>
                         <span className="panel-count">{users.length}</span>
                     </div>
+                    
                     {usersLoading ? (
                         <p className="admin-loading">Loading users...</p>
                     ) : (
@@ -129,7 +132,7 @@ export default function AdminPage({ onNavigate }) {
                             <div className="cart-panel-footer">
                                 <span>Total:</span>
                                     <strong>
-                                        ${cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)}
+                                        ${cartTotal}
                                     </strong>
                             </div>
                         )}

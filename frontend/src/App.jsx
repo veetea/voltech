@@ -12,7 +12,9 @@ import { createProduct, updateProduct, deleteProduct } from "./services/api";
 import useProducts from "./hooks/useProducts";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import AdminPage from "./pages/Admin";
+import ProductCard from "./components/ProductCard";
 
+//categories in sidebar
 const CATEGORIES = ["Audio", "Laptops", "Accessories", "Cameras", "Gaming", "Phones"]
 
 function Shop({ onNavigate }) {
@@ -22,11 +24,12 @@ function Shop({ onNavigate }) {
     const [editingProduct, setEditingProduct] = useState(null);
     const [viewingProduct, setViewingProduct] = useState(null);
     const [adminMode, setAdminMode] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+
     const { products, loading, error, fetchProducts } = useProducts(search, category);
-    const { addItem } = useCart()
-    // Get user from AuthContext
     const { user } = useAuth();
 
+    //handles add and edit product
     async function handleSave(formData) {
         try {
             if (editingProduct) {
@@ -43,6 +46,7 @@ function Shop({ onNavigate }) {
         }
     }
 
+    //delete product with alert confirmation
     async function handleDelete(productId) {
         if (!window.confirm("Are you sure you want to delete this product?")) return;
         try {
@@ -57,48 +61,59 @@ function Shop({ onNavigate }) {
 
     return (
         <div>
-            <NaviBar search={search} onSearch={setSearch} onNavigate={onNavigate} />
+            <NaviBar 
+            search={search} onSearch={setSearch} onNavigate={onNavigate} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            />
             <div className="main-content">
-                <SideBar
-                    categories={CATEGORIES}
-                    selectedCategory={category}
-                    onSelectCategory={setCategory}
-                />
-                <div className="product-list">
-                    {/* admin controls */}
-                    {adminMode && (
-                        <button
-                            className="add-product-btn"
-                            onClick={() => { setEditingProduct(null); setFormOpen(true) }}
-                        >
-                            + Add Product
-                        </button>
-                    )}
+                {/* sidebar oepns and close with toggle button */}
+                {sidebarOpen && (
+                    <SideBar
+                        categories={CATEGORIES}
+                        selectedCategory={category}
+                        onSelectCategory={setCategory}
+                    />
+                )}
+
+                <div className="content">
+                    <div className="product-list">
+                        {/* admin controls, only admin can access */}
+                        {adminMode && (
+                            <button
+                                className="add-product-btn"
+                                onClick={() => { setEditingProduct(null); setFormOpen(true) }}
+                            >
+                                + Add Product
+                            </button>
+                        )}
 
                     {loading && <p>Loading products...</p>}
                     {error && <p className="error">{error}</p>}
                     {!loading && !error && products.length === 0 && <p>No products found.</p>}
                     {!loading && !error && products.map(product => (
-                        <div key={product._id} className="product-card">
-                            <div onClick={() => setViewingProduct(product)}>
-                                <img src={product.image} alt={product.name} />
-                                <h3>{product.name}</h3>
-                                <p>${product.price}</p>
-                            </div>
-                            <button onClick={() => addItem(product._id, product.name, 1)}>
-                                Add to Cart
-                            </button>
-                        </div>
+                        <ProductCard
+                            key={product._id}
+                            product={product}
+                            onView={() => setViewingProduct(product)}
+                            adminMode={adminMode}
+                            onEdit={() => {
+                                setEditingProduct(product);
+                                setViewingProduct(null);
+                                setFormOpen(true);
+                            }}
+                            onDelete={() => handleDelete(product._id)}
+                        />
                     ))}
                 </div>
             </div>
 
-            {/* admin toggle button fixed at bottom left */}
+            {/* admin mode button */}
+            {user && user.role === 'admin' &&(
             <div className="admin-toggle">
                 <button onClick={() => setAdminMode(v => !v)}>
                     {adminMode ? "Exit Admin" : "Admin Mode"}
                 </button>
             </div>
+            )}
 
             <CartDrawer />
             {formOpen && (
@@ -111,23 +126,26 @@ function Shop({ onNavigate }) {
                     }}
                 />
             )}
+
+            {/* product details modal */}
             {viewingProduct && (
-    <ProductModal
-        product={viewingProduct}
-        onClose={() => setViewingProduct(null)}
-        onEdit={adminMode ? () => {
-            setEditingProduct(viewingProduct);
-            setViewingProduct(null);
-            setFormOpen(true);
-        } : null}
-        onDelete={adminMode ? () => handleDelete(viewingProduct._id) : null}
-    />
-)}
-        </div>
+                <ProductModal
+                product={viewingProduct}
+                onClose={() => setViewingProduct(null)}
+                onEdit={adminMode ? () => {
+                    setEditingProduct(viewingProduct);
+                    setViewingProduct(null);
+                    setFormOpen(true);
+                } : null}
+            onDelete={adminMode ? () => handleDelete(viewingProduct._id) : null}
+        />
+    )}
+    </div>
+    </div>
     )
 }
 
-// Main App component with context providers
+//main component
 function Main() {
     const [currentPage, setCurrentPage] = useState('shop');
     const { user, loading } = useAuth();
@@ -140,6 +158,7 @@ function Main() {
         return <p>Loading...</p>;
     }
 
+    //if not logged in, show login and register page
     if (!user) {
         return currentPage === 'register' 
         ? <RegisterPage onNavigate={handleNavigate} /> 

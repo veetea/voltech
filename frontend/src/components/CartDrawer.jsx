@@ -11,6 +11,9 @@ export default function CartDrawer() {
     const grandTotal = totalPrice + shippingPrice
 
     return (
+        <>
+        <div className="cart-overlay" onClick={() => setCartOpen(false)}/>
+        
         <div className="cart-drawer">
             <div className="cart-header">
                 <h2>Your Cart</h2>
@@ -28,7 +31,7 @@ export default function CartDrawer() {
                                 <h4>{item.name}</h4>
                                 <p>${item.price.toFixed(2)}</p>
                                 <div className="quantity-controls">
-                                    <button onClick={() => updateItem(item._id, item.quantity - 1)} disabled={item.quantity === 1}>-</button>
+                                    <button onClick={() => updateItem(item._id, item.quantity - 1)}>-</button>
                                     <span>{item.quantity}</span>
                                     <button onClick={() => updateItem(item._id, item.quantity + 1)}>+</button>
                                 </div>
@@ -48,5 +51,6 @@ export default function CartDrawer() {
                 <button className="clear-cart-button" onClick={handleClearCart} disabled={cartItems.length === 0}>Clear Cart</button>
             </div>
         </div>
+    </>
     )
-} 
+}

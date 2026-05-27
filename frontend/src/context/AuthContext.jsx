@@ -6,19 +6,19 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState((() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
-  })());
+  }) );
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token') || null );
 
-    useEffect(() => {   
-        if (token) {
-            fetch('/api/auth/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
+  useEffect(() => {   
+    if (token) {
+        fetch('/api/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
 
                 setUser(data);
                 localStorage.setItem('user', JSON.stringify(data));
@@ -32,7 +32,8 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
         }
     }, [token]);
-
+    
+    //save token and user on login to localstorage
     function login(token, userData) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
     }
 
+    ///clear everything on logout
     function logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -51,7 +53,7 @@ export const AuthProvider = ({ children }) => {
         <AuthContext.Provider value={{ user, token, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
-    );
-};
+    )
+}
 
-export const useAuth = () => useContext(AuthContext);  
+export const useAuth = () => useContext(AuthContext)
